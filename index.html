@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <title>3 in line</title>
+    <link rel="stylesheet" href="estilos.css">
+</head>
+
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+
+        function Square({ value, onSquareClick }) {
+            return (
+                <button className="square" onClick={onSquareClick}>
+                    {value}
+                </button>
+            );
+        }
+
+        function Board({ xEsSiguiente, squares, onPlay }) {
+            const [estado, setEstado] = React.useState(null);
+            const handleClick = (i) => {
+                if (verificarGanador(squares) === null && squares[i] === null) {
+                    const nextSquares = squares.slice();
+                    xEsSiguiente ? (nextSquares[i] = "X") : (nextSquares[i] = "O");
+                    onPlay(nextSquares);
+                }
+            };
+
+            React.useEffect(() => {
+                const ganador = verificarGanador(squares);
+
+                if (ganador) {
+                    setEstado("Ganador: " + ganador);
+                } else {
+                    setEstado("Siguiente jugador: " + (xEsSiguiente ? "X" : "O"));
+                }
+            }, [squares]);
+
+            return (
+                <>
+                    <div className="status">{estado}</div>            
+                    <div className="board-row">
+                        <Square value={squares[0]} onSquareClick={() => handleClick(0)} />
+                        <Square value={squares[1]} onSquareClick={() => handleClick(1)} />
+                        <Square value={squares[2]} onSquareClick={() => handleClick(2)} />
+                    </div>
+                    <div className="board-row">
+                        <Square value={squares[3]} onSquareClick={() => handleClick(3)} />
+                        <Square value={squares[4]} onSquareClick={() => handleClick(4)} />
+                        <Square value={squares[5]} onSquareClick={() => handleClick(5)} />
+                    </div>
+                    <div className="board-row">
+                        <Square value={squares[6]} onSquareClick={() => handleClick(6)} />
+                        <Square value={squares[7]} onSquareClick={() => handleClick(7)} />
+                        <Square value={squares[8]} onSquareClick={() => handleClick(8)} />
+                    </div>
+                </>
+            );
+        }
+
+        function Game() {
+            const [historial, setHistorial] = React.useState([Array(9).fill(null)]);
+            const [movimientoActual, setMovimientoActual] = React.useState(0);
+            const xIsNext = movimientoActual % 2 === 0;
+            const currentSquares = historial[movimientoActual];
+
+            const handlePlay = (nextSquares) => {
+                const nextHistory = [
+                    ...historial.slice(0, movimientoActual + 1),
+                    nextSquares,
+                ];
+
+                setHistorial(nextHistory);
+                setMovimientoActual(nextHistory.length - 1);
+            };
+
+            const goMove = (numMove) => {
+                setMovimientoActual(numMove);
+            };
+
+            return (
+                <div className="game">
+                    <div className="game-board">
+                        <Board
+                            xEsSiguiente={xIsNext}
+                            squares={currentSquares}
+                            onPlay={handlePlay}
+                        />
+                    </div>
+                    <div className="game-info">
+                        <ol>
+                            {historial.map((hist, i) => (
+                                <li key={i}>
+                                    <button onClick={() => goMove(i)}>
+                                        {i === 0 ? "Inicio del juego" : "Movimiento #" + i}
+                                    </button>
+                                </li>
+                            ))}
+                        </ol>
+                    </div>
+                </div>
+            );
+        }
+
+        function verificarGanador(squares) {
+            // console.log("verificar");
+            //Son las combinaciones de la cuadricula 3x3 (0 al 9) que puede ser ganador
+            const combinaciones_ganadores = [
+                [0, 1, 2],
+                [3, 4, 5],
+                [6, 7, 8],
+                [0, 3, 6],
+                [1, 4, 7],
+                [2, 5, 8],
+                [0, 4, 8],
+                [2, 4, 6],
+            ];
+            for (let i = 0; i < combinaciones_ganadores.length; i++) {
+                const [a, b, c] = combinaciones_ganadores[i];
+                if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+                    // console.log("El ganador es: ", squares[a]);
+                    return squares[a];
+                }
+            }
+            return null;
+        }
+
+
+        const raiz = ReactDOM.createRoot(document.getElementById('root'));
+        raiz.render(<Game />);
+
+    </script>
+</body>
+
+</html>
